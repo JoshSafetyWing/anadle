@@ -22,7 +22,7 @@ import {
 import {
   isWordInWordList,
   isWinningWord,
-  solution,
+  getRandomSolution,
   findFirstUnusedReveal,
   unicodeLength,
 } from './lib/words'
@@ -64,6 +64,10 @@ function App() {
       ? true
       : false
   )
+  const [solution, setSolution] = useState(() => {
+    const loaded = loadGameStateFromLocalStorage()
+    return loaded?.solution ? loaded?.solution : getRandomSolution()
+  })
   const [isHighContrastMode, setIsHighContrastMode] = useState(
     getStoredIsHighContrastMode()
   )
@@ -150,6 +154,15 @@ function App() {
     setCurrentRowClass('')
   }
 
+  const resetGameAndSelectNewWord = () => {
+    const newSolution = getRandomSolution()
+    setSolution(newSolution)
+    saveGameStateToLocalStorage({ guesses: [], solution: newSolution })
+    setGuesses([])
+    setIsGameWon(false)
+    setIsGameLost(false)
+  }
+
   useEffect(() => {
     saveGameStateToLocalStorage({ guesses, solution })
   }, [guesses])
@@ -210,7 +223,11 @@ function App() {
 
     // enforce hard mode - all guesses must contain all previously revealed letters
     if (isHardMode) {
-      const firstMissingReveal = findFirstUnusedReveal(currentGuess, guesses)
+      const firstMissingReveal = findFirstUnusedReveal(
+        currentGuess,
+        guesses,
+        solution
+      )
       if (firstMissingReveal) {
         setCurrentRowClass('jiggle')
         return showErrorAlert(firstMissingReveal, {
@@ -226,7 +243,7 @@ function App() {
       setIsRevealing(false)
     }, REVEAL_TIME_MS * solution.length)
 
-    const winningWord = isWinningWord(currentGuess)
+    const winningWord = isWinningWord(currentGuess, solution)
 
     if (
       unicodeLength(currentGuess) === solution.length &&
@@ -254,6 +271,7 @@ function App() {
 
   return (
     <div className="h-screen flex flex-col">
+      <button onClick={resetGameAndSelectNewWord}>Josh Is Here</button>
       <Navbar
         setIsInfoModalOpen={setIsInfoModalOpen}
         setIsStatsModalOpen={setIsStatsModalOpen}

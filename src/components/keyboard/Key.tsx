@@ -3,7 +3,6 @@ import classnames from 'classnames'
 import { CharStatus } from '../../lib/statuses'
 import { REVEAL_TIME_MS } from '../../constants/settings'
 import { getStoredIsHighContrastMode } from '../../lib/localStorage'
-import { solution } from '../../lib/words'
 
 type Props = {
   children?: ReactNode
@@ -11,7 +10,8 @@ type Props = {
   width?: number
   status?: CharStatus
   onClick: (value: string) => void
-  isRevealing?: boolean
+  isRevealing?: boolean,
+  size: number
 }
 
 export const Key = ({
@@ -21,8 +21,9 @@ export const Key = ({
   value,
   onClick,
   isRevealing,
+  size
 }: Props) => {
-  const keyDelayMs = REVEAL_TIME_MS * solution.length
+  const keyDelayMs = REVEAL_TIME_MS * size
   const isHighContrast = getStoredIsHighContrastMode()
 
   const classes = classnames(

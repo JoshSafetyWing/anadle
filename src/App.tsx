@@ -25,6 +25,7 @@ import {
   getRandomSolution,
   findFirstUnusedReveal,
   unicodeLength,
+  getSolutionMessage,
 } from './lib/words'
 import { addStatsForCompletedGame, loadStats } from './lib/stats'
 import {
@@ -64,14 +65,26 @@ function App() {
       ? true
       : false
   )
-  const [solution, setSolution] = useState(() => {
-    const loaded = loadGameStateFromLocalStorage()
-    return loaded?.solution ? loaded?.solution : getRandomSolution()
-  })
   const [isHighContrastMode, setIsHighContrastMode] = useState(
     getStoredIsHighContrastMode()
   )
   const [isRevealing, setIsRevealing] = useState(false)
+
+  const [solution, setSolution] = useState(() => {
+    const loaded = loadGameStateFromLocalStorage()
+    if (loaded?.solution) {
+      return loaded.solution
+    }
+    const newSolution = getRandomSolution()
+    saveGameStateToLocalStorage({
+      guesses: loaded?.guesses ? loaded.guesses : [],
+      solution: newSolution,
+    })
+    return newSolution
+  })
+  const [solutionMessage, setSolutionMessage] = useState(() =>
+    getSolutionMessage(solution)
+  )
   const [guesses, setGuesses] = useState<string[]>(() => {
     const loaded = loadGameStateFromLocalStorage()
     if (loaded?.solution !== solution) {
@@ -91,7 +104,6 @@ function App() {
   })
 
   const [stats, setStats] = useState(() => loadStats())
-
   const [isHardMode, setIsHardMode] = useState(
     localStorage.getItem('gameMode')
       ? localStorage.getItem('gameMode') === 'hard'
@@ -107,6 +119,11 @@ function App() {
       }, WELCOME_INFO_MODAL_MS)
     }
   })
+
+  useEffect(() => {
+    saveGameStateToLocalStorage({ guesses: [], solution })
+    setSolutionMessage(getSolutionMessage(solution))
+  }, [solution])
 
   useEffect(() => {
     DISCOURAGE_INAPP_BROWSERS &&
@@ -157,7 +174,6 @@ function App() {
   const resetGameAndSelectNewWord = () => {
     const newSolution = getRandomSolution()
     setSolution(newSolution)
-    saveGameStateToLocalStorage({ guesses: [], solution: newSolution })
     setGuesses([])
     setIsGameWon(false)
     setIsGameLost(false)
@@ -271,11 +287,11 @@ function App() {
 
   return (
     <div className="h-screen flex flex-col">
-      <button onClick={resetGameAndSelectNewWord}>Josh Is Here</button>
       <Navbar
         setIsInfoModalOpen={setIsInfoModalOpen}
         setIsStatsModalOpen={setIsStatsModalOpen}
         setIsSettingsModalOpen={setIsSettingsModalOpen}
+        resetGame={resetGameAndSelectNewWord}
       />
       <div className="pt-2 px-1 pb-8 md:max-w-7xl w-full mx-auto sm:px-6 lg:px-8 flex flex-col grow">
         <div className="pb-6 grow">
@@ -303,6 +319,7 @@ function App() {
           isOpen={isStatsModalOpen}
           handleClose={() => setIsStatsModalOpen(false)}
           solution={solution}
+          solutionMessage={solutionMessage}
           guesses={guesses}
           gameStats={stats}
           isGameLost={isGameLost}

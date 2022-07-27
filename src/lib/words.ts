@@ -1,4 +1,4 @@
-import { WORDS } from '../constants/wordlist'
+import { WORDS, WORDSWITHMESSAGES } from '../constants/wordlist'
 import { VALID_GUESSES } from '../constants/validGuesses'
 import { WRONG_SPOT_MESSAGE, NOT_CONTAINED_MESSAGE } from '../constants/strings'
 import { getGuessStatuses } from './statuses'
@@ -6,7 +6,7 @@ import { default as GraphemeSplitter } from 'grapheme-splitter'
 
 export const isWordInWordList = (word: string) => {
   return (
-    WORDS.includes(localeAwareLowerCase(word)) ||
+    Object.keys(WORDS).includes(localeAwareLowerCase(word)) ||
     VALID_GUESSES.includes(localeAwareLowerCase(word))
   )
 }
@@ -85,5 +85,10 @@ const getRandomIntFromRange = (min: number, max: number): number => {
 }
 
 export const getRandomSolution = (): string => {
-  return localeAwareUpperCase(WORDS[getRandomIntFromRange(0, WORDS.length - 1)])
+  const word = WORDS[getRandomIntFromRange(0, WORDS.length - 1)]
+  return localeAwareUpperCase(word)
+}
+
+export const getSolutionMessage = (word: string): string => {
+  return WORDSWITHMESSAGES[localeAwareLowerCase(word)]
 }

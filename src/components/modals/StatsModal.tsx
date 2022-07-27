@@ -12,11 +12,13 @@ import {
 } from '../../constants/strings'
 import { MigrationIntro } from '../stats/MigrationIntro'
 import { ENABLE_MIGRATE_STATS } from '../../constants/settings'
+import { WordMessage } from '../other/WordMessage'
 
 type Props = {
   isOpen: boolean
   handleClose: () => void
-  solution: string
+  solution: string,
+  solutionMessage: string
   guesses: string[]
   gameStats: GameStats
   isGameLost: boolean
@@ -33,6 +35,7 @@ export const StatsModal = ({
   isOpen,
   handleClose,
   solution,
+  solutionMessage,
   guesses,
   gameStats,
   isGameLost,
@@ -65,6 +68,7 @@ export const StatsModal = ({
       handleClose={handleClose}
     >
       <StatBar gameStats={gameStats} />
+      <WordMessage word={solution} message={solutionMessage} />
       <h4 className="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">
         {GUESS_DISTRIBUTION_TEXT}
       </h4>

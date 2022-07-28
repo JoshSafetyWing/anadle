@@ -84,11 +84,22 @@ const getRandomIntFromRange = (min: number, max: number): number => {
   return Math.floor(Math.random() * (maxVal - minVal + 1)) + minVal
 }
 
-export const getRandomSolution = (): string => {
-  const word = WORDS[getRandomIntFromRange(0, WORDS.length - 1)]
-  return localeAwareUpperCase(word)
+export const getRandomSolution = (previousWords: string[]): string => {
+  let word = localeAwareUpperCase(
+    WORDS[getRandomIntFromRange(0, WORDS.length - 1)]
+  )
+  while (previousWords.includes(word)) {
+    word = localeAwareUpperCase(
+      WORDS[getRandomIntFromRange(0, WORDS.length - 1)]
+    )
+  }
+  return word
 }
 
 export const getSolutionMessage = (word: string): string => {
   return WORDSWITHMESSAGES[localeAwareLowerCase(word)]
+}
+
+export const getTotalWords = () => {
+  return WORDS.length
 }

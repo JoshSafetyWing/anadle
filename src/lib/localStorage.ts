@@ -1,5 +1,6 @@
 const gameStateKey = 'gameState'
 const highContrastKey = 'highContrast'
+const previousWordsKey = 'previousWords'
 
 export type StoredGameState = {
   guesses: string[]
@@ -46,4 +47,21 @@ export const setStoredIsHighContrastMode = (isHighContrast: boolean) => {
 export const getStoredIsHighContrastMode = () => {
   const highContrast = localStorage.getItem(highContrastKey)
   return highContrast === '1'
+}
+
+export const addPreviousWord = (word: string) => {
+  localStorage.setItem(
+    previousWordsKey,
+    JSON.stringify([...getPreviousWords(), word])
+  )
+}
+
+export const getPreviousWords = (): string[] => {
+  return localStorage.getItem(previousWordsKey)
+    ? JSON.parse(localStorage.getItem(previousWordsKey)!)
+    : []
+}
+
+export const resetPreviousWords = () => {
+  localStorage.setItem(previousWordsKey, JSON.stringify([]))
 }

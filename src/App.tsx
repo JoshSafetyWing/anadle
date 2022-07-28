@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Grid } from './components/grid/Grid'
 import { Keyboard } from './components/keyboard/Keyboard'
+import { WinningModal } from './components/modals/WinningModal'
 import { InfoModal } from './components/modals/InfoModal'
 import { StatsModal } from './components/modals/StatsModal'
 import { SettingsModal } from './components/modals/SettingsModal'
@@ -26,6 +27,7 @@ import {
   findFirstUnusedReveal,
   unicodeLength,
   getSolutionMessage,
+  getTotalWords,
 } from './lib/words'
 import { addStatsForCompletedGame, loadStats } from './lib/stats'
 import {
@@ -33,6 +35,9 @@ import {
   saveGameStateToLocalStorage,
   setStoredIsHighContrastMode,
   getStoredIsHighContrastMode,
+  addPreviousWord,
+  getPreviousWords,
+  resetPreviousWords,
 } from './lib/localStorage'
 import { default as GraphemeSplitter } from 'grapheme-splitter'
 
@@ -70,18 +75,23 @@ function App() {
   )
   const [isRevealing, setIsRevealing] = useState(false)
 
+  const [previousWords, setPreviousWords] = useState(() => getPreviousWords())
+  const [isComplete, setIsComplete] = useState(() => {
+    return previousWords.length >= getTotalWords()
+  })
   const [solution, setSolution] = useState(() => {
     const loaded = loadGameStateFromLocalStorage()
     if (loaded?.solution) {
       return loaded.solution
     }
-    const newSolution = getRandomSolution()
+    const newSolution = getRandomSolution(previousWords)
     saveGameStateToLocalStorage({
       guesses: loaded?.guesses ? loaded.guesses : [],
       solution: newSolution,
     })
     return newSolution
   })
+
   const [solutionMessage, setSolutionMessage] = useState(() =>
     getSolutionMessage(solution)
   )
@@ -172,11 +182,13 @@ function App() {
   }
 
   const resetGameAndSelectNewWord = () => {
-    const newSolution = getRandomSolution()
-    setSolution(newSolution)
-    setGuesses([])
-    setIsGameWon(false)
-    setIsGameLost(false)
+    if (!isComplete) {
+      const newSolution = getRandomSolution(previousWords)
+      setSolution(newSolution)
+      setGuesses([])
+      setIsGameWon(false)
+      setIsGameLost(false)
+    }
   }
 
   useEffect(() => {
@@ -201,6 +213,10 @@ function App() {
       }, (solution.length + 1) * REVEAL_TIME_MS)
     }
   }, [isGameWon, isGameLost, showSuccessAlert])
+
+  useEffect(() => {
+    setIsComplete(previousWords.length >= getTotalWords())
+  }, [previousWords])
 
   const onChar = (value: string) => {
     if (
@@ -270,11 +286,15 @@ function App() {
       setCurrentGuess('')
 
       if (winningWord) {
+        addPreviousWord(solution)
+        setPreviousWords([...previousWords, solution])
         setStats(addStatsForCompletedGame(stats, guesses.length))
         return setIsGameWon(true)
       }
 
       if (guesses.length === MAX_CHALLENGES - 1) {
+        addPreviousWord(solution)
+        setPreviousWords([...previousWords, solution])
         setStats(addStatsForCompletedGame(stats, guesses.length + 1))
         setIsGameLost(true)
         showErrorAlert(CORRECT_WORD_MESSAGE(solution), {
@@ -311,12 +331,20 @@ function App() {
           guesses={guesses}
           isRevealing={isRevealing}
         />
+        <WinningModal
+          isOpen={isComplete}
+          handleClose={() => {
+            setIsComplete(false)
+            resetPreviousWords()
+            setPreviousWords([])
+          }}
+        />
         <InfoModal
           isOpen={isInfoModalOpen}
           handleClose={() => setIsInfoModalOpen(false)}
         />
         <StatsModal
-          isOpen={isStatsModalOpen}
+          isOpen={isStatsModalOpen && !isComplete}
           handleClose={() => setIsStatsModalOpen(false)}
           solution={solution}
           solutionMessage={solutionMessage}

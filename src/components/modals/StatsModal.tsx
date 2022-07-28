@@ -1,24 +1,23 @@
-import Countdown from 'react-countdown'
 import { ShareIcon } from '@heroicons/react/outline'
 import { StatBar } from '../stats/StatBar'
 import { Histogram } from '../stats/Histogram'
 import { GameStats } from '../../lib/localStorage'
 import { shareStatus } from '../../lib/share'
-import { tomorrow } from '../../lib/words'
 import { BaseModal } from './BaseModal'
 import {
   STATISTICS_TITLE,
   GUESS_DISTRIBUTION_TEXT,
-  NEW_WORD_TEXT,
   SHARE_TEXT,
 } from '../../constants/strings'
 import { MigrationIntro } from '../stats/MigrationIntro'
 import { ENABLE_MIGRATE_STATS } from '../../constants/settings'
+import { WordMessage } from '../other/WordMessage'
 
 type Props = {
   isOpen: boolean
   handleClose: () => void
-  solution: string
+  solution: string,
+  solutionMessage: string
   guesses: string[]
   gameStats: GameStats
   isGameLost: boolean
@@ -35,6 +34,7 @@ export const StatsModal = ({
   isOpen,
   handleClose,
   solution,
+  solutionMessage,
   guesses,
   gameStats,
   isGameLost,
@@ -67,6 +67,7 @@ export const StatsModal = ({
       handleClose={handleClose}
     >
       <StatBar gameStats={gameStats} />
+      {(isGameLost || isGameWon) && <WordMessage word={solution} message={solutionMessage} />}
       <h4 className="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">
         {GUESS_DISTRIBUTION_TEXT}
       </h4>
@@ -76,15 +77,7 @@ export const StatsModal = ({
         numberOfGuessesMade={numberOfGuessesMade}
       />
       {(isGameLost || isGameWon) && (
-        <div className="mt-5 sm:mt-6 columns-2 dark:text-white">
-          <div>
-            <h5>{NEW_WORD_TEXT}</h5>
-            <Countdown
-              className="text-lg font-medium text-gray-900 dark:text-gray-100"
-              date={tomorrow}
-              daysInHours={true}
-            />
-          </div>
+        <div className="mt-5 sm:mt-6 columns-1 dark:text-white">
           <div>
             <button
               type="button"
